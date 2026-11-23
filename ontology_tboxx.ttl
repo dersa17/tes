@@ -1,0 +1,177 @@
+# =============================================================================
+# ONTOLOGI T-BOX - CAPSTONE SEMANTIC WEB (TAHAP 1)
+# Sistem Katalog Daur Ulang Plastik dan Pemetaan Bank Sampah di Kota Bandung
+# =============================================================================
+# Skema T-Box: 12 kelas, 7 object property, 8 datatype property.
+# =============================================================================
+
+@prefix ex: <https://example.org/daurulang#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <https://schema.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix dbr: <http://dbpedia.org/resource/> .
+
+ex:OntologiDaurUlangBandung a owl:Ontology ;
+    rdfs:label "Ontologi Katalog Daur Ulang Plastik dan Bank Sampah Kota Bandung"@id ;
+    rdfs:comment "Rancangan T-Box Capstone Tahap 1. Data bank sampah dan katalog plastik akan direpresentasikan sebagai A-Box pada tahap berikutnya. Namespace wd: dan dbr: disiapkan untuk Linked Open Data."@id .
+
+# =============================================================================
+# 1. HIERARKI KELAS - Single Root Taxonomy Tree (12 kelas)
+# =============================================================================
+
+ex:EntitasDaurUlang a owl:Class ;
+    rdfs:label "Entitas Daur Ulang"@id ;
+    rdfs:comment "Kelas akar untuk semua entitas yang dimodelkan dalam sistem."@id .
+
+ex:FasilitasPengelolaanSampah a owl:Class ;
+    rdfs:subClassOf ex:EntitasDaurUlang ;
+    rdfs:label "Fasilitas Pengelolaan Sampah"@id .
+
+ex:BankSampah a owl:Class ;
+    rdfs:subClassOf ex:FasilitasPengelolaanSampah ;
+    rdfs:label "Bank Sampah"@id ;
+    rdfs:comment "Hanya gunakan untuk entri yang sudah dipastikan merupakan bank sampah, bukan otomatis untuk TPS3R/pengepul/Posyandu dalam direktori mentah."@id .
+
+ex:Material a owl:Class ;
+    rdfs:subClassOf ex:EntitasDaurUlang ;
+    rdfs:label "Material"@id .
+
+ex:JenisPlastik a owl:Class ;
+    rdfs:subClassOf ex:Material ;
+    rdfs:label "Jenis Plastik"@id ;
+    rdfs:comment "Jenis plastik kode resin 1-7 direpresentasikan sebagai individu di A-Box, bukan tujuh subkelas."@id .
+
+ex:WilayahAdministratif a owl:Class ;
+    rdfs:subClassOf ex:EntitasDaurUlang ;
+    rdfs:label "Wilayah Administratif"@id .
+
+ex:Kota a owl:Class ;
+    rdfs:subClassOf ex:WilayahAdministratif ;
+    rdfs:label "Kota"@id .
+
+ex:Kecamatan a owl:Class ;
+    rdfs:subClassOf ex:WilayahAdministratif ;
+    rdfs:label "Kecamatan"@id .
+
+ex:ProsesPengolahan a owl:Class ;
+    rdfs:subClassOf ex:EntitasDaurUlang ;
+    rdfs:label "Proses Pengolahan"@id .
+
+ex:ProsesDaurUlang a owl:Class ;
+    rdfs:subClassOf ex:ProsesPengolahan ;
+    rdfs:label "Proses Daur Ulang"@id ;
+    rdfs:comment "Kelas disiapkan, tetapi metode spesifik memerlukan sumber data tambahan sebelum dibuat sebagai individu."@id .
+
+ex:Produk a owl:Class ;
+    rdfs:subClassOf ex:EntitasDaurUlang ;
+    rdfs:label "Produk"@id .
+
+ex:ProdukDaurUlang a owl:Class ;
+    rdfs:subClassOf ex:Produk ;
+    rdfs:label "Produk Daur Ulang"@id ;
+    rdfs:comment "Contoh produk pada katalog perlu dipisahkan/dinormalisasi saat pembentukan A-Box sebelum dijadikan individu."@id .
+
+# =============================================================================
+# 2. OBJECT PROPERTY (7 properti)
+# Domain dan range digunakan untuk inferensi tipe RDFS
+# =============================================================================
+
+ex:beradaDiWilayah a owl:ObjectProperty ;
+    rdfs:domain ex:BankSampah ;
+    rdfs:range ex:WilayahAdministratif ;
+    rdfs:label "berada di wilayah"@id ;
+    rdfs:comment "Hubungan umum antara bank sampah dan wilayah administratifnya."@id .
+
+ex:beradaDiKecamatan a owl:ObjectProperty ;
+    rdfs:subPropertyOf ex:beradaDiWilayah ;
+    rdfs:domain ex:BankSampah ;
+    rdfs:range ex:Kecamatan ;
+    rdfs:label "berada di kecamatan"@id ;
+    rdfs:comment "Dibentuk dari kecamatan pada direktori setelah identitas fasilitas dan wilayah diperiksa."@id .
+
+ex:bagianDariKota a owl:ObjectProperty ;
+    rdfs:domain ex:Kecamatan ;
+    rdfs:range ex:Kota ;
+    rdfs:label "bagian dari kota"@id ;
+    rdfs:comment "Merepresentasikan relasi kecamatan ke kota. Relasi ini tidak dengan sendirinya menjadikan beradaDiWilayah transitif."@id .
+
+ex:memilikiContohProduk a owl:ObjectProperty ;
+    rdfs:domain ex:JenisPlastik ;
+    rdfs:range ex:ProdukDaurUlang ;
+    rdfs:label "memiliki contoh produk daur ulang"@id ;
+    rdfs:comment "Menghubungkan jenis plastik dengan contoh produk pada katalog, setelah nama produk dinormalisasi menjadi individu A-Box."@id .
+
+ex:menerimaJenisPlastik a owl:ObjectProperty ;
+    rdfs:domain ex:BankSampah ;
+    rdfs:range ex:JenisPlastik ;
+    rdfs:label "menerima jenis plastik"@id ;
+    rdfs:comment "Kolom penerimaan plastik pada direktori masih kosong; jangan membuat fakta relasi ini tanpa sumber terverifikasi."@id .
+
+ex:dapatDiolahDengan a owl:ObjectProperty ;
+    rdfs:domain ex:JenisPlastik ;
+    rdfs:range ex:ProsesDaurUlang ;
+    rdfs:label "dapat diolah dengan"@id ;
+    rdfs:comment "Relasi rancangan; membutuhkan data proses pengolahan dari sumber tambahan sebelum diisi."@id .
+
+ex:menghasilkanProduk a owl:ObjectProperty ;
+    rdfs:domain ex:ProsesDaurUlang ;
+    rdfs:range ex:ProdukDaurUlang ;
+    rdfs:label "menghasilkan produk"@id ;
+    rdfs:comment "Relasi rancangan yang tidak boleh diasumsikan hanya dari kesamaan nama produk pada katalog."@id .
+
+# =============================================================================
+# 3. DATATYPE PROPERTY (8 properti)
+# =============================================================================
+
+ex:idReferensi a owl:DatatypeProperty ;
+    rdfs:domain ex:BankSampah ;
+    rdfs:range xsd:string ;
+    rdfs:label "ID referensi"@id ;
+    rdfs:comment "Sumber CSV: id_referensi."@id .
+
+ex:nama a owl:DatatypeProperty ;
+    rdfs:domain ex:EntitasDaurUlang ;
+    rdfs:range xsd:string ;
+    rdfs:label "nama"@id ;
+    rdfs:comment "Sumber CSV: nama_di_pdf atau Nama bahan; untuk nama bahan plastik dapat dipakai pada individu JenisPlastik."@id .
+
+ex:alamat a owl:DatatypeProperty ;
+    rdfs:domain ex:BankSampah ;
+    rdfs:range xsd:string ;
+    rdfs:label "alamat"@id ;
+    rdfs:comment "Sumber CSV: alamat_di_pdf; nilai kosong tidak perlu direkayasa."@id .
+
+ex:kodeResin a owl:DatatypeProperty ;
+    rdfs:domain ex:JenisPlastik ;
+    rdfs:range xsd:integer ;
+    rdfs:label "kode resin"@id ;
+    rdfs:comment "Sumber CSV: Resin, bernilai 1 sampai 7."@id .
+
+ex:singkatanPlastik a owl:DatatypeProperty ;
+    rdfs:domain ex:JenisPlastik ;
+    rdfs:range xsd:string ;
+    rdfs:label "singkatan plastik"@id ;
+    rdfs:comment "Sumber CSV: Singkatan (contoh PET/PETE, HDPE)."@id .
+
+ex:deskripsiPlastik a owl:DatatypeProperty ;
+    rdfs:domain ex:JenisPlastik ;
+    rdfs:range xsd:string ;
+    rdfs:label "deskripsi plastik"@id ;
+    rdfs:comment "Sumber CSV: Deskripsi."@id .
+
+ex:urlGoogleMaps a owl:DatatypeProperty ;
+    rdfs:domain ex:BankSampah ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "URL Google Maps"@id ;
+    rdfs:comment "Sumber CSV: google_maps_url. Kolom belum terisi, sehingga saat ini tidak ada klaim lokasi melalui URL."@id .
+
+ex:search_terms a owl:DatatypeProperty ;
+    rdfs:domain ex:EntitasDaurUlang ;
+    rdfs:range xsd:string ;
+    rdfs:label "kata kunci dan sinonim"@id ;
+    rdfs:comment "Properti untuk istilah alternatif pencarian; dapat disusun dari nama/singkatan/variasi istilah tervalidasi pada Tahap 2."@id .
+
+
